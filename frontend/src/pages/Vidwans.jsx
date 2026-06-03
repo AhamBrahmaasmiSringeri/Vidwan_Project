@@ -33,7 +33,10 @@ const Vidwans = () => {
     travelCapability: '',
     status: 'Active',
     notes: '',
+    isOverseas: false,
   });
+
+  const [travelFilter, setTravelFilter] = useState('All'); // 'All', 'Domestic', 'Overseas'
 
   const fetchVidwans = async () => {
     try {
@@ -61,6 +64,7 @@ const Vidwans = () => {
       travelCapability: '',
       status: 'Active',
       notes: '',
+      isOverseas: false,
     });
     setIsModalOpen(true);
   };
@@ -75,13 +79,17 @@ const Vidwans = () => {
       travelCapability: vidwan.travelCapability,
       status: vidwan.status,
       notes: vidwan.notes || '',
+      isOverseas: vidwan.isOverseas || false,
     });
     setIsModalOpen(true);
   };
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setForm((prev) => ({ 
+      ...prev, 
+      [name]: type === 'checkbox' ? checked : value 
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -123,12 +131,18 @@ const Vidwans = () => {
   // Filter Vidwans
   const filteredVidwans = vidwans.filter((v) => {
     const term = searchTerm.toLowerCase();
-    return (
+    const searchMatch = (
       v.name.toLowerCase().includes(term) ||
       v.specialization.toLowerCase().includes(term) ||
       v.city.toLowerCase().includes(term) ||
       v.languages.some((l) => l.toLowerCase().includes(term))
     );
+
+    const travelMatch = travelFilter === 'All' || 
+      (travelFilter === 'Overseas' && v.isOverseas) || 
+      (travelFilter === 'Domestic' && !v.isOverseas);
+
+    return searchMatch && travelMatch;
   });
 
   return (
@@ -148,16 +162,30 @@ const Vidwans = () => {
         </button>
       </div>
 
-      {/* Search Bar */}
-      <div className="bg-white p-4 rounded-xl border border-cream-border mb-6 flex items-center gap-3 shadow-sm">
-        <Search className="w-5 h-5 text-teak-muted" />
-        <input
-          type="text"
-          placeholder="Search by name, specialization, language, or city..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full bg-transparent text-sm text-teak focus:outline-none placeholder:text-teak-muted"
-        />
+      {/* Search and filter Bar */}
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
+        <div className="bg-white p-4 rounded-xl border border-cream-border flex-1 flex items-center gap-3 shadow-sm">
+          <Search className="w-5 h-5 text-teak-muted" />
+          <input
+            type="text"
+            placeholder="Search by name, specialization, language, or city..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full bg-transparent text-sm text-teak focus:outline-none placeholder:text-teak-muted"
+          />
+        </div>
+        <div className="bg-white p-4 rounded-xl border border-cream-border flex items-center gap-3 shadow-sm min-w-[200px]">
+          <Globe className="w-5 h-5 text-teak-muted" />
+          <select
+            value={travelFilter}
+            onChange={(e) => setTravelFilter(e.target.value)}
+            className="w-full bg-transparent text-sm text-teak focus:outline-none font-medium appearance-none cursor-pointer"
+          >
+            <option value="All">All Regions</option>
+            <option value="Domestic">Domestic Only</option>
+            <option value="Overseas">Overseas Travel</option>
+          </select>
+        </div>
       </div>
 
       {/* Grid List */}
@@ -185,13 +213,21 @@ const Vidwans = () => {
                   <h3 className="text-lg font-bold font-serif text-teak pr-4 leading-snug">
                     {vidwan.name}
                   </h3>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
-                    vidwan.status === 'Active' 
-                      ? 'bg-forest-soft text-forest-dark border border-forest/15'
-                      : 'bg-gray-100 text-gray-500 border border-gray-200'
-                  }`}>
-                    {vidwan.status}
-                  </span>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
+                      vidwan.status === 'Active' 
+                        ? 'bg-forest-soft text-forest-dark border border-forest/15'
+                        : 'bg-gray-100 text-gray-500 border border-gray-200'
+                    }`}>
+                      {vidwan.status}
+                    </span>
+                    {vidwan.isOverseas && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-saffron/10 text-saffron border border-saffron/20 flex items-center gap-1">
+                        <Globe className="w-3 h-3" />
+                        OVERSEAS
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {/* Specialization */}
@@ -368,6 +404,24 @@ const Vidwans = () => {
                   placeholder="e.g. South India, All India (by train/car)"
                   className="w-full px-3 py-2 border border-cream-border rounded-lg text-xs focus:outline-none focus:border-saffron"
                 />
+              </div>
+
+              <div className="flex items-center gap-3 p-3 bg-cream/30 rounded-xl border border-cream-border/50">
+                <input
+                  type="checkbox"
+                  id="isOverseas"
+                  name="isOverseas"
+                  checked={form.isOverseas}
+                  onChange={handleInputChange}
+                  className="w-4 h-4 rounded text-saffron focus:ring-saffron cursor-pointer"
+                />
+                <label htmlFor="isOverseas" className="flex items-center gap-2 cursor-pointer">
+                  <Globe className="w-4 h-4 text-saffron" />
+                  <div>
+                    <p className="text-xs font-bold text-teak">Overseas Travel Capability</p>
+                    <p className="text-[10px] text-teak-light">Enable this if the scholar is available for international programs.</p>
+                  </div>
+                </label>
               </div>
 
               <div className="space-y-1">

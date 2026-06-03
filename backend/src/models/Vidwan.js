@@ -35,6 +35,10 @@ const VidwanSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    isOverseas: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

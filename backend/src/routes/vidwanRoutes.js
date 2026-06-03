@@ -20,7 +20,7 @@ router.get('/', protect, async (req, res) => {
 // @route   POST /api/vidwans
 // @access  Private/DirectorOrAdmin
 router.post('/', protect, requireDirectorOrAdmin, async (req, res) => {
-  const { name, languages, specialization, city, travelCapability, status, notes } = req.body;
+  const { name, languages, specialization, city, travelCapability, status, notes, isOverseas } = req.body;
 
   try {
     const vidwan = new Vidwan({
@@ -31,6 +31,7 @@ router.post('/', protect, requireDirectorOrAdmin, async (req, res) => {
       travelCapability,
       status,
       notes,
+      isOverseas,
     });
 
     const createdVidwan = await vidwan.save();
@@ -44,7 +45,7 @@ router.post('/', protect, requireDirectorOrAdmin, async (req, res) => {
 // @route   PUT /api/vidwans/:id
 // @access  Private/DirectorOrAdmin
 router.put('/:id', protect, requireDirectorOrAdmin, async (req, res) => {
-  const { name, languages, specialization, city, travelCapability, status, notes } = req.body;
+  const { name, languages, specialization, city, travelCapability, status, notes, isOverseas } = req.body;
 
   try {
     const vidwan = await Vidwan.findById(req.id || req.params.id);
@@ -57,6 +58,7 @@ router.put('/:id', protect, requireDirectorOrAdmin, async (req, res) => {
       vidwan.travelCapability = travelCapability !== undefined ? travelCapability : vidwan.travelCapability;
       vidwan.status = status !== undefined ? status : vidwan.status;
       vidwan.notes = notes !== undefined ? notes : vidwan.notes;
+      vidwan.isOverseas = isOverseas !== undefined ? isOverseas : vidwan.isOverseas;
 
       const updatedVidwan = await vidwan.save();
       res.json(updatedVidwan);

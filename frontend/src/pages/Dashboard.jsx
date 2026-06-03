@@ -30,6 +30,7 @@ const Dashboard = () => {
   const [filterCity, setFilterCity] = useState('');
   const [filterLanguage, setFilterLanguage] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [filterTravel, setFilterTravel] = useState(''); // '', 'Domestic', 'Overseas'
 
   // Selected event modal
   const [selectedEvent, setSelectedEvent] = useState(null);
@@ -94,6 +95,14 @@ const Dashboard = () => {
 
     if (filterStatus) {
       result = result.filter((p) => p.status === filterStatus);
+    }
+
+    if (filterTravel) {
+      result = result.filter((p) => {
+        const vidwan = p.assignedVidwan;
+        if (!vidwan) return false;
+        return filterTravel === 'Overseas' ? vidwan.isOverseas : !vidwan.isOverseas;
+      });
     }
 
     setFilteredPrograms(result);
@@ -328,6 +337,20 @@ const Dashboard = () => {
               <option value="Cancelled">Cancelled</option>
             </select>
           </div>
+
+          {/* Travel Filter */}
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-teak-light">Filter by Region</label>
+            <select
+              value={filterTravel}
+              onChange={(e) => setFilterTravel(e.target.value)}
+              className="w-full px-3 py-2 bg-cream/30 border border-cream-border rounded-lg text-xs text-teak focus:outline-none focus:border-saffron font-medium"
+            >
+              <option value="">All Regions</option>
+              <option value="Domestic">Domestic Vidwans</option>
+              <option value="Overseas">Overseas Vidwans</option>
+            </select>
+          </div>
         </div>
 
         {/* Clear Filters indicator */}
@@ -339,6 +362,7 @@ const Dashboard = () => {
                 setFilterCity('');
                 setFilterLanguage('');
                 setFilterStatus('');
+                setFilterTravel('');
               }}
               className="text-[11px] font-semibold text-saffron hover:text-saffron-dark transition-colors cursor-pointer"
             >

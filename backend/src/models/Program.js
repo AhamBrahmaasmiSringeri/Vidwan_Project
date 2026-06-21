@@ -30,16 +30,10 @@ const ProgramSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    assignedVidwan: {
+    vidwans: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Vidwan',
-      required: true,
-    },
-    backupVidwan: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Vidwan',
-      default: null,
-    },
+    }],
     status: {
       type: String,
       enum: ['Tentative', 'Confirmed', 'Completed', 'Cancelled'],
@@ -57,7 +51,6 @@ const ProgramSchema = new mongoose.Schema(
 
 // Index to optimize date range overlaps query
 ProgramSchema.index({ startDate: 1, endDate: 1 });
-ProgramSchema.index({ assignedVidwan: 1 });
-ProgramSchema.index({ backupVidwan: 1 });
+ProgramSchema.index({ vidwans: 1 });
 
 module.exports = mongoose.model('Program', ProgramSchema);

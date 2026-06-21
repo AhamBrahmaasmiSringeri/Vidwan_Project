@@ -119,27 +119,23 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Event status colors overrides */
 .event-confirmed {
-  background-color: var(--color-forest-soft) !important;
-  border-left: 4px solid var(--color-forest) !important;
-  color: var(--color-forest-dark) !important;
+  background-color: var(--color-forest) !important;
+  color: #FFFFFF !important;
 }
 
 .event-tentative {
-  background-color: #FEF9C3 !important; /* light yellow */
-  border-left: 4px solid #CA8A04 !important; /* dark gold */
-  color: #854D0E !important;
+  background-color: #CA8A04 !important; /* Darker amber */
+  color: #FFFFFF !important;
 }
 
 .event-completed {
-  background-color: #F3F4F6 !important; /* light grey */
-  border-left: 4px solid #4B5563 !important; /* grey */
-  color: #374151 !important;
+  background-color: #4B5563 !important; /* Darker grey */
+  color: #FFFFFF !important;
 }
 
 .event-cancelled {
-  background-color: #FEE2E2 !important; /* light red */
-  border-left: 4px solid #DC2626 !important; /* red */
-  color: #991B1B !important;
+  background-color: #DC2626 !important; /* Darker red */
+  color: #FFFFFF !important;
   text-decoration: line-through;
 }
 

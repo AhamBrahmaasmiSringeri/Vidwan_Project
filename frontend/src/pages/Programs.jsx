@@ -22,6 +22,7 @@ const Programs = () => {
   const [vidwans, setVidwans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [vidwanSearchTerm, setVidwanSearchTerm] = useState('');
 
   // Form modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -33,8 +34,7 @@ const Programs = () => {
     startDate: '',
     endDate: '',
     language: '',
-    assignedVidwan: '',
-    backupVidwan: '',
+    vidwans: [],
     status: 'Tentative',
     notes: '',
   });
@@ -66,8 +66,8 @@ const Programs = () => {
   // Live conflict validation inside the form
   useEffect(() => {
     const performLiveConflictCheck = async () => {
-      // Only check if Dates and Primary Vidwan are entered
-      if (!isModalOpen || !form.startDate || !form.endDate || !form.assignedVidwan) {
+      // Only check if Dates and Vidwans are entered
+      if (!isModalOpen || !form.startDate || !form.endDate || form.vidwans.length === 0) {
         setConflicts([]);
         return;
       }
@@ -77,8 +77,7 @@ const Programs = () => {
         const { data } = await api.post('/programs/check-conflict', {
           startDate: form.startDate,
           endDate: form.endDate,
-          assignedVidwan: form.assignedVidwan,
-          backupVidwan: form.backupVidwan || null,
+          vidwans: form.vidwans,
           excludeProgramId: editingProgram?._id || null,
         });
         setConflicts(data.conflicts || []);
@@ -94,7 +93,7 @@ const Programs = () => {
     }, 400); // debounce API check
 
     return () => clearTimeout(delayCheck);
-  }, [form.startDate, form.endDate, form.assignedVidwan, form.backupVidwan, isModalOpen, editingProgram]);
+  }, [form.startDate, form.endDate, form.vidwans, isModalOpen, editingProgram]);
 
   const handleOpenAddModal = () => {
     setEditingProgram(null);
@@ -105,8 +104,7 @@ const Programs = () => {
       startDate: '',
       endDate: '',
       language: '',
-      assignedVidwan: '',
-      backupVidwan: '',
+      vidwans: [],
       status: 'Tentative',
       notes: '',
     });
@@ -123,8 +121,7 @@ const Programs = () => {
       startDate: program.startDate.split('T')[0],
       endDate: program.endDate.split('T')[0],
       language: program.language,
-      assignedVidwan: program.assignedVidwan?._id || '',
-      backupVidwan: program.backupVidwan?._id || '',
+      vidwans: program.vidwans?.map(v => v._id) || [],
       status: program.status,
       notes: program.notes || '',
     });
@@ -148,8 +145,7 @@ const Programs = () => {
 
     try {
       const payload = {
-        ...form,
-        backupVidwan: form.backupVidwan === "" ? null : form.backupVidwan
+        ...form
       };
 
       if (editingProgram) {
@@ -182,7 +178,7 @@ const Programs = () => {
       p.programName.toLowerCase().includes(term) ||
       p.city.toLowerCase().includes(term) ||
       p.venue.toLowerCase().includes(term) ||
-      p.assignedVidwan?.name.toLowerCase().includes(term) ||
+      p.vidwans?.some(v => v.name.toLowerCase().includes(term)) ||
       p.language.toLowerCase().includes(term)
     );
   });
@@ -292,14 +288,17 @@ const Programs = () => {
 
                     {/* Scholar Assignments */}
                     <td className="p-4 space-y-1">
-                      <div className="flex items-center gap-1 text-teak font-semibold">
-                        <User className="w-3.5 h-3.5 text-saffron" />
-                        <span>{program.assignedVidwan?.name || 'Unassigned'}</span>
-                      </div>
-                      {program.backupVidwan && (
-                        <div className="text-[10px] text-teak-light flex items-center gap-1">
-                          <User className="w-3 h-3 text-teak-muted" />
-                          <span>Backup: {program.backupVidwan?.name}</span>
+                      {program.vidwans && program.vidwans.length > 0 ? (
+                        program.vidwans.map((vidwan, idx) => (
+                          <div key={vidwan._id} className="flex items-center gap-1 text-teak font-semibold">
+                            <User className={`w-3.5 h-3.5 ${idx === 0 ? 'text-saffron' : 'text-teak-muted'}`} />
+                            <span>{vidwan.name}</span>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="flex items-center gap-1 text-red-600 font-bold animate-pulse">
+                          <AlertTriangle className="w-3.5 h-3.5" />
+                          <span>NO VIDWANS ASSIGNED</span>
                         </div>
                       )}
                     </td>
@@ -441,39 +440,59 @@ const Programs = () => {
                   />
                 </div>
 
-                {/* Assigned Vidwan */}
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-teak-light">Primary Vidwan</label>
-                  <select
-                    name="assignedVidwan"
-                    value={form.assignedVidwan}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-3 py-2 border border-cream-border rounded-lg text-xs focus:outline-none focus:border-saffron"
-                  >
-                    <option value="">Select Scholar</option>
-                    {activeVidwans.map((v) => (
-                      <option key={v._id} value={v._id}>{v.name} ({v.city})</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Backup Vidwan */}
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-teak-light">Backup Vidwan (Optional)</label>
-                  <select
-                    name="backupVidwan"
-                    value={form.backupVidwan}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-cream-border rounded-lg text-xs focus:outline-none focus:border-saffron"
-                  >
-                    <option value="">None</option>
+                {/* Vidwan Selection */}
+                <div className="col-span-2 space-y-1">
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-xs font-semibold text-teak-light">Assign Vidwans</label>
+                    <div className="relative">
+                      <Search className="w-3 h-3 text-teak-muted absolute left-2 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        placeholder="Search scholars..."
+                        value={vidwanSearchTerm}
+                        onChange={(e) => setVidwanSearchTerm(e.target.value)}
+                        className="pl-7 pr-2 py-1 border border-cream-border rounded text-[10px] focus:outline-none focus:border-saffron bg-white/50 w-32"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-32 overflow-y-auto p-3 border border-cream-border rounded-lg bg-cream/20">
                     {activeVidwans
-                      .filter((v) => v._id !== form.assignedVidwan)
+                      .filter(v => v.name.toLowerCase().includes(vidwanSearchTerm.toLowerCase()) || form.vidwans.includes(v._id))
+                      .sort((a, b) => {
+                        const aSel = form.vidwans.includes(a._id);
+                        const bSel = form.vidwans.includes(b._id);
+                        if (aSel && !bSel) return -1;
+                        if (!aSel && bSel) return 1;
+                        return 0;
+                      })
                       .map((v) => (
-                        <option key={v._id} value={v._id}>{v.name} ({v.city})</option>
-                      ))}
-                  </select>
+                      <label key={v._id} className={`flex items-center gap-2 cursor-pointer hover:bg-cream-dark/40 p-1 rounded transition-colors ${form.vidwans.includes(v._id) ? 'bg-saffron/5' : ''}`}>
+                        <input
+                          type="checkbox"
+                          checked={form.vidwans.includes(v._id)}
+                          onChange={(e) => {
+                            const checked = e.target.checked;
+                            setForm(prev => ({
+                              ...prev,
+                              vidwans: checked 
+                                ? [...prev.vidwans, v._id]
+                                : prev.vidwans.filter(id => id !== v._id)
+                            }));
+                          }}
+                          className="w-3.5 h-3.5 accent-saffron"
+                        />
+                        <span className={`text-[11px] ${form.vidwans.includes(v._id) ? 'text-teak font-bold' : 'text-teak'}`}>
+                          {v.name}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                  {form.vidwans.length === 0 && (
+                    <p className="text-[10px] text-red-500 font-medium italic mt-1 flex items-center gap-1">
+                      <AlertTriangle className="w-3 h-3" />
+                      Warning: No Vidwans assigned to this program.
+                    </p>
+                  )}
                 </div>
 
                 {/* Language */}

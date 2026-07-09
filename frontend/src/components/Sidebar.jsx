@@ -69,7 +69,7 @@ const Sidebar = () => {
               <UserCheck className="w-4 h-4 text-forest" />
             )}
             <span className="text-xs font-semibold text-teak truncate max-w-[150px]">
-              {user?.name}
+              {user?.role === 'Super Admin' ? 'Super Admin' : user?.name}
             </span>
           </div>
           

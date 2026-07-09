@@ -23,7 +23,7 @@ const seedData = async () => {
     const superAdmin = new User({
       username: 'admin',
       password: 'password123',
-      name: 'Sri Shankara Prasad',
+      name: 'Super Admin',
       role: 'Super Admin',
     });
     await superAdmin.save();

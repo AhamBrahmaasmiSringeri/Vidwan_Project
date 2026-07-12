@@ -48,7 +48,7 @@ router.put('/:id', protect, requireDirectorOrAdmin, async (req, res) => {
   const { name, languages, specialization, city, travelCapability, status, notes, isOverseas } = req.body;
 
   try {
-    const vidwan = await Vidwan.findById(req.id || req.params.id);
+    const vidwan = await Vidwan.findById(req.params.id);
 
     if (vidwan) {
       vidwan.name = name !== undefined ? name : vidwan.name;
@@ -80,7 +80,7 @@ router.delete('/:id', protect, requireSuperAdmin, async (req, res) => {
     if (vidwan) {
       // Check if Vidwan is currently assigned to any programs
       const assignedPrograms = await Program.find({
-        $or: [{ assignedVidwan: vidwan._id }, { backupVidwan: vidwan._id }],
+        vidwans: vidwan._id,
         status: { $ne: 'Cancelled' },
       });
 
@@ -113,7 +113,7 @@ router.get('/:id/availability', protect, async (req, res) => {
 
     // Get all non-cancelled programs where the Vidwan is assigned or backup
     const bookings = await Program.find({
-      $or: [{ assignedVidwan: req.params.id }, { backupVidwan: req.params.id }],
+      vidwans: req.params.id,
       status: { $ne: 'Cancelled' },
     }).sort({ startDate: 1 });
 

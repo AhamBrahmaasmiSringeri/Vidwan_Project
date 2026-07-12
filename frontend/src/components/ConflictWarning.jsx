@@ -46,7 +46,7 @@ const ConflictWarning = ({ conflicts = [] }) => {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-1.5 text-teak-light">
                   <div className="flex items-center gap-1">
                     <User className="w-3.5 h-3.5 text-teak-muted" />
-                    <span>Assigned: {conflict.assignedVidwan?.name}</span>
+                    <span>Assigned: {conflict.vidwans?.map(v => v.name).join(', ')}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <Calendar className="w-3.5 h-3.5 text-teak-muted" />
